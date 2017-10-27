@@ -1,5 +1,7 @@
 # Informative git prompt for bash and fish
 
+[![Gitter](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/magicmonty/bash-git-prompt?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+
 This prompt is a port of the "Informative git prompt for zsh" which you can
 find [here](https://github.com/olivierverdier/zsh-git-prompt)
 
@@ -13,7 +15,7 @@ staged, changed, etc.
 
 # ATTENTION! Breaking changes!
 
-**If you use this prompt already, please update your `.git-prompt-colors.sh`, 
+**If you use this prompt already, please update your `.git-prompt-colors.sh`,
 if you have one. It now contains a function named `define_git_prompt_colors()` or `override_git_prompt_colors()`!**
 
 **Please see the ``Custom.bgptemplate`` in the ``themes`` subdirectory of the installation directory!**
@@ -24,7 +26,7 @@ and call the function `reload_git_prompt_colors <ThemeName>` like follows:**
 ```sh
 override_git_prompt_colors() {
   GIT_PROMPT_THEME_NAME="Custom" # needed for reload optimization, should be unique
-  
+
   # Place your overrides here
   ...
 }
@@ -37,7 +39,7 @@ The advantage of this approach is, that you only need to specify the parts, that
 
 ---
 
-**The variable `GIT_PROMPT_SHOW_LAST_COMMAND_INDICATOR` was replaced with a more general placeholder 
+**The variable `GIT_PROMPT_SHOW_LAST_COMMAND_INDICATOR` was replaced with a more general placeholder
 named ``_LAST_COMMAND_INDICATOR_``, which is replaced by the state of the last executed command. It is now activated by default.**
 
 ## Examples
@@ -58,17 +60,22 @@ The prompt may look like the following:
 
 By default, the general appearance of the prompt is::
 
-    (<branch> <branch tracking>|<local status>)
+    (<branch> <upstream branch> <branch tracking>|<local status>)
 
 The symbols are as follows:
 
 - Local Status Symbols
   - ``✔``: repository clean
   - ``●n``: there are ``n`` staged files
-  - ``✖n``: there are ``n`` unmerged files
+  - ``✖n``: there are ``n`` files with merge conflicts
+  - ``✖-n``: there are ``n`` staged files waiting for removal
   - ``✚n``: there are ``n`` changed but *unstaged* files
   - ``…n``: there are ``n`` untracked files
   - ``⚑n``: there are ``n`` stash entries
+- Upstream branch
+  - Shows the remote tracking branch
+  - Disabled by default
+  - Enable by setting GIT_PROMPT_SHOW_UPSTREAM=1
 - Branch Tracking Symbols
   - ``↑n``: ahead of remote by ``n`` commits
   - ``↓n``: behind remote by ``n`` commits
@@ -83,14 +90,15 @@ The symbols are as follows:
 
 - Run `brew update`
 
-- Run `brew install bash-git-prompt` for the last stable release or `brew install --HEAD bash-git-prompt` for the 
+- Run `brew install bash-git-prompt` for the last stable release or `brew install --HEAD bash-git-prompt` for the
    latest version directly from the repository
 
-- Now you can source the file in your `~/.bashrc` as follows:
+- Now you can source the file in your `~/.bash_profile` as follows:
 
 ```sh
 if [ -f "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh" ]; then
-    source "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh"
+  __GIT_PROMPT_DIR=$(brew --prefix)/opt/bash-git-prompt/share
+  source "$(brew --prefix)/opt/bash-git-prompt/share/gitprompt.sh"
 fi
 ```
 
@@ -100,31 +108,67 @@ fi
 
 ```sh
 cd ~
-git clone https://github.com/magicmonty/bash-git-prompt.git .bash-git-prompt
+git clone https://github.com/magicmonty/bash-git-prompt.git .bash-git-prompt --depth=1
 ```
 
-- Source the file `gitprompt.sh` from `~/.bashrc`
+Add to the `~/.bashrc`:
+```
+  GIT_PROMPT_ONLY_IN_REPO=1
+  source ~/.bash-git-prompt/gitprompt.sh
+```
 
-### Configuration
+### install for the fish shell
+
+- If you cloned the repo to a directory other then ~/.bash-git-prompt , set __GIT_PROMPT_DIR in ~/.config/fish/config.fish
+   to that path
+
+- To install as an option in the fish_config GUI
 
 ```sh
-   # some other config in .bashrc
+sudo install -m 666 gitprompt.fish /usr/share/fish/tools/web_config/sample_prompts/
+fish_config
+```
+   to install the bash-git-prompt as a choice under the prompt tab of the web config. Selecting this will copy it to
+   ~/.config/fish/functions/fish_prompt.fish
 
-   # gitprompt configuration
+- You can also do
+
+```sh
+mkdir -p ~/.config/fish/functions/
+cp gitprompt.fish ~/.config/fish/functions/fish_prompt.fish
+```
+   to overwrite the current prompt with the bash-git-prompt directly
+
+
+### All configs for .bashrc
+
+```sh
 
    # Set config variables first
    GIT_PROMPT_ONLY_IN_REPO=1
-   
+
    # GIT_PROMPT_FETCH_REMOTE_STATUS=0   # uncomment to avoid fetching remote status
+
+   # GIT_PROMPT_SHOW_UPSTREAM=1 # uncomment to show upstream tracking branch
+   # GIT_PROMPT_SHOW_UNTRACKED_FILES=all # can be no, normal or all; determines counting of untracked files
+   
+   # GIT_PROMPT_SHOW_CHANGED_FILES_COUNT=0 # uncomment to avoid printing the number of changed files
+
+   # GIT_PROMPT_STATUS_COMMAND=gitstatus_pre-1.7.10.sh # uncomment to support Git older than 1.7.10
 
    # GIT_PROMPT_START=...    # uncomment for custom prompt start sequence
    # GIT_PROMPT_END=...      # uncomment for custom prompt end sequence
 
    # as last entry source the gitprompt script
-   # GIT_PROMPT_THEME=Custom # use custom .git-prompt-colors.sh
+   # GIT_PROMPT_THEME=Custom # use custom theme specified in file GIT_PROMPT_THEME_FILE (default ~/.git-prompt-colors.sh)
+   # GIT_PROMPT_THEME_FILE=~/.git-prompt-colors.sh
    # GIT_PROMPT_THEME=Solarized # use theme optimized for solarized color scheme
    source ~/.bash-git-prompt/gitprompt.sh
 ```
+
+You can set the `GIT_PROMPT_SHOW_UNTRACKED_FILES` variable to `no` or `normal` to speed things up if you have lots of
+untracked files in your repository. This can be the case for build systems that put their build artifacts in
+the subdirectory structure of the git repository.
 
 - `cd` to a git repository and test it!
 
@@ -138,7 +182,7 @@ GIT_PROMPT_THEME=Solarized
 ```
 
 If you set `GIT_PROMPT_THEME` to `Custom`, then the `.git-prompt-colors.sh` in the home directory will be used.
-This file can now be generated with the command `git_prompt_make_custom_theme [<Name of base theme>]`. If the name of 
+This file can now be generated with the command `git_prompt_make_custom_theme [<Name of base theme>]`. If the name of
 the base theme is ommitted or the theme file is not found, then the Default theme is used. If you have already a custom
 `.git-prompt-colors.sh` in your home directory, a error message will be shown.
 
@@ -146,6 +190,15 @@ You can display a list of available themes with `git_prompt_list_themes` (the cu
 
 **If you omit the `GIT_PROMPT_THEME` variable, the Default theme is used or, if you have a custom `.git-prompt-colors.sh`
 in your home directory, then the Custom theme is used.**
+
+##### Ubuntu Themes
+
+Ubuntu requires a bit more spacing for some characters so it has its own themes.
+
+These can be listed with `git_prompt_list_themes`:
+```sh
+git_prompt_list_themes | grep Ubuntu
+```
 
 ##### Theme structure
 
@@ -157,7 +210,7 @@ A theme consists of a function `override_git_prompt_colors()` which defines at l
 ```sh
 override_git_prompt_colors() {
   GIT_PROMPT_THEME_NAME="Custom" # needed for reload optimization, should be unique
-  
+
   # Place your overrides here
   ...
 }
@@ -187,12 +240,7 @@ If you use a custom theme in `.git-prompt-colors.sh`, please set `GIT_PROMPT_THE
   and end of the prompt by setting `GIT_PROMPT_START` and `GIT_PROMPT_END`
   before you source the `gitprompt.sh`.
 
-- The current git repo information is obtained by the script `gitstatus.sh` or
-  `gitstatus.py`.  Both scripts do the same thing, but the bash script is a tad
-  more quick, and is used by default.  If you prefer the python script
-  (possibly because you have enhanced it), simply delete or change the name of
-  `gitstatus.sh`.
-
+- The current git repo information is obtained by the script `gitstatus.sh`.
 - You can define `prompt_callback` function to tweak your prompt dynamically.
 
 ```sh
@@ -203,12 +251,16 @@ function prompt_callback {
 }
 ```
 
+- There are two helper functions that can be used within `prompt_callback`:
+    - `gp_set_window_title <String>` - sets the window title to the given string (should work for XTerm type terminals like in OS X or Ubuntu)
+    - `gp_truncate_pwd` - a function that returns the current PWD truncated to fit the current terminal width. Specify the length to truncate to as a parameter. Otherwise it defaults to 1/3 of the terminal width.
+
 - If you want to show the git prompt only if you are in a git repository you
   can set ``GIT_PROMPT_ONLY_IN_REPO=1`` before sourcing the gitprompt script
 
 - There is an indicator at the start of the prompt, which shows
   the result of the last executed command by if you put the placeholder
-  `_LAST_COMMAND_INDICATOR_` in any of the prompt templates. 
+  `_LAST_COMMAND_INDICATOR_` in any of the prompt templates.
   It is now by default activated in the default theme:
 
 ```sh
@@ -223,7 +275,7 @@ function prompt_callback {
 ```sh
 GIT_PROMPT_COMMAND_OK="${Green}✔ " # displays as ✔
 GIT_PROMPT_COMMAND_FAIL="${Red}✘-_LAST_COMMAND_STATE_ " # displays as ✘-1 for exit code 1
-``` 
+```
 
 - It is now possible to disable the fetching of the remote repository either
   globally by setting ``GIT_PROMPT_FETCH_REMOTE_STATUS=0`` in your .bashrc or
@@ -232,6 +284,11 @@ GIT_PROMPT_COMMAND_FAIL="${Red}✘-_LAST_COMMAND_STATE_ " # displays as ✘-1 fo
 
 - You can also ignore a repository completely by creating a file named ``.bash-git-rc`` with the
   content ``GIT_PROMPT_IGNORE=1`` in the root of your git repository.
+
+- If you have a repository with many untracked files, the git prompt can become very slow.
+  You can disable the display of untracked files on a per repository basis by setting
+  ``GIT_PROMPT_SHOW_UNTRACKED_FILES=no`` in your ``.bash-git-rc`` in the repository or
+  by disabling it globally in your ``.bashrc``
 
 - You can get help on the git prompt with the function ``git_prompt_help``.
   Examples are available with ``git_prompt_examples``.
@@ -244,6 +301,13 @@ GIT_PROMPT_COMMAND_FAIL="${Red}✘-_LAST_COMMAND_STATE_ " # displays as ✘-1 fo
 ```sh
 git_prompt_reset
 ```
+
+- You can disable/enable gitprompt by runnning:
+
+```sh
+git_prompt_toggle
+```
+
 
 **Enjoy!**
 
@@ -270,7 +334,6 @@ from scratch by following this procedure:
         --prefix=bash-git-prompt-${VER}/       \
         HEAD                                   \
         --  *.sh                               \
-            *.py                               \
             *.fish                             \
             README.md                          \
             themes                             \
@@ -308,9 +371,8 @@ Please leave a comment on the issue, that you want to fix it, so others know, th
 Pull requests are welcome. I will check them and merge them, if I think they help the project.
 
 ## Donations
-I accept tips through [Gittip][tip] and [Flattr][flattr].
+I accept tips through [Flattr][flattr].
 
-[![Gittip](https://img.shields.io/gittip/magicmonty.svg?style=flat)](https://www.gittip.com/magicmonty/)
 [![Flattr](http://api.flattr.com/button/flattr-badge-large.png)](https://flattr.com/submit/auto?user_id=magicmonty&url=https%3A%2F%2Fgithub.com%2Fmagicmonty%2Fbash-git-prompt)
 
 [blog post]: http://sebastiancelis.com/2009/nov/16/zsh-prompt-git-users/

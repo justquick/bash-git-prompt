@@ -1,12 +1,12 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #  git-prompt-help -- show useful info to help new users with the information
 # being displayed.
 
 git_prompt_help() {
   source ${__GIT_PROMPT_DIR}/prompt-colors.sh
-  source themes/Default.bgptheme
+  source ${__GIT_PROMPT_DIR}/themes/Default.bgptheme
  cat <<EOF | sed 's/\\\[\\033//g' | sed 's/\\\]//g'
-The git prompt format is [<BRANCH><TRACKING>|<LOCALSTATUS>]
+The git prompt format is ${GIT_PROMPT_PREFIX}<BRANCH><TRACKING>${GIT_PROMPT_SEPARATOR}<LOCALSTATUS>${GIT_PROMPT_SUFFIX}
 
 BRANCH is a branch name, such as "master" or "stage", a tag name, or commit
 hash prefixed with ':'.
@@ -14,18 +14,18 @@ hash prefixed with ':'.
 TRACKING indicates how the local branch differs from the
 remote branch.  It can be empty, or one of:
 
-    ${GIT_PROMPT_BRANCH}${ResetColor}${GIT_PROMPT_REMOTE}↑·N${ResetColor}   - ahead of remote by N commits
-    ${GIT_PROMPT_BRANCH}${ResetColor}${GIT_PROMPT_REMOTE}↓·N${ResetColor}   - behind remote by N commits
-    ${GIT_PROMPT_BRANCH}${ResetColor}${GIT_PROMPT_REMOTE}↓·M↑·N${ResetColor} - branches diverged, other by M commits, yours by N commits
+    ${GIT_PROMPT_BRANCH}${ResetColor}${GIT_PROMPT_REMOTE}${GIT_PROMPT_SYMBOLS_AHEAD}N${ResetColor} - ahead of remote by N commits
+    ${GIT_PROMPT_BRANCH}${ResetColor}${GIT_PROMPT_REMOTE}${GIT_PROMPT_SYMBOLS_BEHIND}M${ResetColor} - behind remote by M commits
+    ${GIT_PROMPT_BRANCH}${ResetColor}${GIT_PROMPT_REMOTE}${GIT_PROMPT_SYMBOLS_AHEAD}N${GIT_PROMPT_SYMBOLS_BEHIND}M${ResetColor} - branches diverged, other by M commits, yours by N commits
 
 LOCALSTATUS is one of the following:
 
-    ${GIT_PROMPT_CLEAN}${ResetColor}    - repository clean
-    ${GIT_PROMPT_STAGED} N${ResetColor}  - N staged files
-    ${GIT_PROMPT_CONFLICTS} N${ResetColor}  - N conflicted files
-    ${GIT_PROMPT_CHANGED} N${ResetColor}  - N changed but *unstaged* files
-    ${GIT_PROMPT_UNTRACKED} N${ResetColor}  - N untracked files
-    ${GIT_PROMPT_STASHED} N${ResetColor}  - N stash entries
+    ${GIT_PROMPT_CLEAN}${ResetColor} - repository clean
+    ${GIT_PROMPT_STAGED}N${ResetColor} - N staged files
+    ${GIT_PROMPT_CONFLICTS}N${ResetColor} - N files with merge conflicts
+    ${GIT_PROMPT_CHANGED}N${ResetColor} - N changed but *unstaged* files
+    ${GIT_PROMPT_UNTRACKED}N${ResetColor} - N untracked files
+    ${GIT_PROMPT_STASHED}N${ResetColor} - N stash entries
 
 See "git_prompt_examples" for examples.
 EOF
@@ -65,6 +65,7 @@ git_prompt_color_samples() {
     echo -e "${color}$1${ResetColor}" | sed 's/\\\]//g'  | sed 's/\\\[//g'
   }
 
+  local x=0
   while (( x < 8 )) ; do
     showColor ${ColorNames[x]}
     showColor "Dim${ColorNames[x]}"
